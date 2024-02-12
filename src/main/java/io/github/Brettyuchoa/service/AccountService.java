@@ -2,68 +2,72 @@ package io.github.Brettyuchoa.service;
 
 import io.github.Brettyuchoa.model.Account;
 import io.github.Brettyuchoa.repository.AccountRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
+@Slf4j
 @Service
 public class AccountService {
 
     @Autowired
     private AccountRepository accountRepository;
 
-    @Transactional(readOnly = true)
     public Double checkBalance(Long accountNumber) {
-        java.util.Optional<Account> account = accountRepository.findById(accountNumber);
-
-        if (! account.isPresent()) {
+        java.util.Optional<Account> accountOptional = accountRepository.findById(accountNumber);
+        if (accountOptional.isEmpty()) {
             throw new IllegalArgumentException("Conta não encontrada.");
         }
-
-        return account.get().getBalance();
+        return accountOptional.get().getBalance();
     }
 
     public void validateWithdrawal(Long accountNumber, Double withdrawalAmount) {
-        Account account = accountRepository.findById();
-
-        if (account == null) {
+        Optional<Account> accountOptional = accountRepository.findById(accountNumber);
+        if (accountOptional.isEmpty()) {
             throw new IllegalArgumentException("Conta não encontrada.");
-        }
-
-        if (withdrawalAmount <= 0) {
-            throw new IllegalArgumentException("O valor do saque deve ser positivo.");
-        }
-
-        if (account.getBalance() < withdrawalAmount) {
-            throw new IllegalArgumentException("Saldo insuficiente para o saque.");
         }
     }
 
+    @Transactional
     public void transferBalance(Long sourceAccountId, Long targetAccountId, double amount) {
-        System.out.println("Transfer initiated.");
-
-        // Verificação se as contas existem
-        java.util.Optional<Account> sourceAccount = accountRepository.findById(sourceAccountId);
-        java.util.Optional<Account> targetAccount = accountRepository.findById(targetAccountId);
-
-        if (sourceAccount == null || targetAccount == null) {
-            throw new IllegalArgumentException("Conta de origem ou destino não encontrada.");
-        }
+        log.info("Transfer initiated.");
+        Account sourceAccount = findById(sourceAccountId);
+        Account targetAccount = findById(targetAccountId);
 
         // Verificação de saldo suficiente
-        if (sourceAccount.get().getBalance() >= amount) {
-            sourceAccount.debit(amount);
-            targetAccount.credit(amount);
+        if (sourceAccount.getBalance() >= amount) {
+            debit(sourceAccount , amount);
+            credit(targetAccount, amount);
 
             // Salvando as alterações
             accountRepository.save(sourceAccount);
             accountRepository.save(targetAccount);
-
-            System.out.println("Transfer completed.");
+            log.info("Transfer completed.");
         } else {
             // Lógica para lidar com saldo insuficiente
+            log.error("Transfer failed: Saldo insuficiente.");
             throw new IllegalArgumentException("Transfer failed: Saldo insuficiente.");
         }
+    }
+
+    private void debit(Account account, double valor){
+        account.setBalance(account.getBalance() - valor);
+    }
+
+    private void credit(Account account, double valor){
+        account.setBalance(account.getBalance() + valor);
+    }
+
+    public Account findById(Long numberAccuont){
+        // Verificação se a conta existe
+        java.util.Optional<Account> accountOptional = accountRepository.findById(numberAccuont);
+        if (accountOptional.isEmpty() ) {
+            throw new IllegalArgumentException("Conta de origem ou destino não encontrada.");
+        }
+        return accountOptional.get();
     }
 
 }

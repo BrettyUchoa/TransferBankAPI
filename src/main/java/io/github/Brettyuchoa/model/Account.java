@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class Account {
 
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "S_ACCOUNT")
@@ -29,8 +28,4 @@ public class Account {
     @NotNull
     private Double balance;
 
-    public void debit(double amount) {
-    }
-
-    // ... outros métodos
 }

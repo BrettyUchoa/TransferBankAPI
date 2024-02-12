@@ -26,8 +26,8 @@ public class AccountServiceTest {
     @Test
     public void testTransferBalance_AccountsExist() {
         // Configuração do mock
-        when(accountRepository.findByNumber(1L)).thenReturn(new Account(1L, 100L, 500.0));
-        when(accountRepository.findByNumber(2L)).thenReturn(new Account(2L, 200L, 300.0));
+        when(accountService.findById(1L)).thenReturn(new Account(1L, 100L, 500.0));
+        when(accountService.findById(2L)).thenReturn(new Account(2L, 200L, 300.0));
 
         // Execução do método a ser testado
         accountService.transferBalance(1L, 2L, 100.0);
@@ -39,8 +39,8 @@ public class AccountServiceTest {
     @Test(expected = IllegalArgumentException.class)
     public void testTransferBalance_InsufficientBalance() {
         // Configuração do mock
-        when(accountRepository.findByNumber(1L)).thenReturn(new Account(1L, 100L, 50.0));
-        when(accountRepository.findByNumber(2L)).thenReturn(new Account(2L, 200L, 300.0));
+        when(accountService.findById(1L)).thenReturn(new Account(1L, 100L, 50.0));
+        when(accountService.findById(2L)).thenReturn(new Account(2L, 200L, 300.0));
 
         // Execução do método a ser testado
         accountService.transferBalance(1L, 2L, 100.0);
